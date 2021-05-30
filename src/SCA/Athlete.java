@@ -2,54 +2,76 @@ package SCA;
 
 import java.util.Vector;
 
-
 public class Athlete {
 
     public final Vector<SymptomEvaluation> evaluationsList;
 
-    public Athlete(){
-
+    public Athlete() {
         evaluationsList = new Vector<SymptomEvaluation>();
     }
 
-    public int vectorSize(){
+    public int vectorSize() {
         return evaluationsList.size();
     }
 
-    public static SymptomEvaluation enterSymptoms(){
-
+    public static void SymptomEntering(Athlete athlete) {
         System.out.println("------------SYMPTOMS ENTERING ---------------");
         Symptoms symptom = new Symptoms();
-        String [] symptoms;
-        symptoms =  symptom.SymptomsData();
-        SymptomEvaluation eval = new SymptomEvaluation();
+        String[] symptoms;
+        symptoms = symptom.SymptomsData();
+        SymptomEvaluation evaluation = new SymptomEvaluation();
         String response;
 
         int i = 0;
-           while (i < symptoms.length) {
-               System.out.print(  i+1 + " - " +"Enter pain level from 0 to 6 for "+" : " +symptoms[i]+ " " );
-               try{
-                   response = SportConcussionAssessmentUI.scanner.nextLine();
-                   int input = Integer.parseInt(response);
-                   if((input >= 0) && (input <= 6)){
-                        eval.setEvalution(i, input);
-                       i++;
-                   }
-                   else {
-                       System.out.println("Error: Enter a Valid Number from 0 to 6");
-                   }
+        while (i < symptoms.length) {
+            System.out.print(i + 1 + " - " + "Enter pain level( none (0), mild(1-2), moderate(3-4) & severity (5-6)) for " + " : " + symptoms[i] + " -> ");
+            try {
+                response = SportConcussionAssessmentUI.scanner.nextLine();
+                int input = Integer.parseInt(response);
+                if ((input >= 0) && (input <= 6)) {
+                    evaluation.setEvalution(i, input);
+                    i++;
+                } else {
+                    System.out.println("Error: Enter a Valid Number from 0 to 6");
+                }
 
-               }catch(NumberFormatException e){
-                   System.out.println("Error: Enter a Valid Number from 0 to 6");
-               }
-           }
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Enter a Valid Number from 0 to 6");
+            }
+        }
         System.out.println("------------THANK YOU, WE ARE DONE ---------------");
 
-        return eval;
+        athlete.storeSymptomsToEvaluationList(evaluation);
 
     }
 
-    public  void storeSymptomsToEvaluationList(SymptomEvaluation lastElement){
+    public void evaluationSummary(Athlete athlete) {
+        System.out.println("Enter number of game to view it's summary, minimum of 2 games");
+        String response;
+        if (evaluationsList.size() > 0) {
+            response = SportConcussionAssessmentUI.scanner.nextLine();
+            int input ;
+            try {
+                input = Integer.parseInt(response);
+                if (input >= 1 && input <= evaluationsList.size()) {
+                    System.out.println("You are viewing game summary number " + input);
+                    SymptomEvaluation summary = evaluationsList.get(input - 1);
+                    System.out.println(" Total number of symptoms: " + summary.totalNumberOfSymptoms());
+                    System.out.println(" Symptom severity score: " + summary.severityScore());
+                    System.out.println(" Overall rating - after comparing with the summary of the previous game: ");
+                    athlete.displaySymptomRisk(input);
+                } else {
+                    System.out.println("couldn't  find the game you are looking for");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("No evaluation");
+            }
+        }else
+        { System.out.println("couldn't found an evaluation, please choose the first option to enter and store one"); }
+    }
+
+    public void storeSymptomsToEvaluationList(SymptomEvaluation lastElement) {
+        // no evaluations
         System.out.println("------------YOUR SYMPTOMS ARE BEING STORED INTO THE SYSTEM ---------------");
 
         if (evaluationsList.size() > 5) {
@@ -57,93 +79,48 @@ public class Athlete {
             SymptomEvaluation evaluation = null;
 
             while(shitElements <= 3){
-                 evaluation = evaluationsList.get(shitElements + 1);
+                evaluation = evaluationsList.get(shitElements + 1);
                 shitElements++;
             }
             evaluationsList.set(shitElements, evaluation);
-         evaluationsList.set(4, lastElement);
+            evaluationsList.set(4, lastElement);
         } else {
-        evaluationsList.add(lastElement);
+            evaluationsList.add(lastElement);
         }
         System.out.println("------------YOUR SYMPTOMS STORED SUCCESSFULLY---------------");
 
     }
 
-    public void evaluationSummary(){
-        System.out.println("------------HERE'S THE SUMMARY OF YOUR SYMPTOMS-------------");
-        System.out.println("Number of evaluations entered earlier : "+  vectorSize());
-        String response;
-        response = SportConcussionAssessmentUI.scanner.nextLine();
-        int input = Integer.parseInt(response);
-        if(vectorSize() > 0 ) {
+    public String displaySymptomRisk(int storedRate) {
 
-            for (int i = 0; i < evaluationsList.size(); i++) {
-                System.out.print("Enter " + (i + 1) + " to view the game symptoms summary");
-                try{
+        if (evaluationsList.size() >= 1) {
+            try{
+                System.out.println("------------HERE'S THE RISK LEVEL-------------");
 
-                    if (input >= 1 && input <=vectorSize()) {
-                        SymptomEvaluation summary = evaluationsList.get(input -1);
-                        System.out.println(" Total number of symptoms: "+summary.totalNumberOfSymptoms());
-                        System.out.println(" Symptom severity score: "+summary.severityScore());
-                        System.out.println(" Overall rating - after comparing with the summary of the previous game: ");
-
-
-                        System.out.println( summary.getOverallRating(input));
+                if ((storedRate - 2) >= 0) {
+                    SymptomEvaluation previousRate = evaluationsList.get(storedRate-2);
+                    SymptomEvaluation currentSymptom = new SymptomEvaluation();
+                    if ((currentSymptom.totalNumberOfSymptoms() - previousRate.totalNumberOfSymptoms() < 3) && (currentSymptom.severityScore() - previousRate.severityScore()) < 10) {
+                        return "GREEN ";
                     }
-                }catch (NumberFormatException e){
-                    System.out.println("Enter a Valid Number");
-                }
-              }
-            response = SportConcussionAssessmentUI.scanner.nextLine();
-
-        try {
-            input = Integer.parseInt(response);
-            SymptomEvaluation res = new SymptomEvaluation();
-            if (input >= 1 && input <= res.totalNumberOfSymptoms()) {
-                SymptomEvaluation summary = evaluationsList.get(input -1);
-                System.out.println(" Total number of symptoms: "+summary.totalNumberOfSymptoms());
-                System.out.println(" Symptom severity score: "+summary.severityScore());
-                System.out.println(" Overall rating - after comparing with the summary of the previous game: ");
-                System.out.println( summary.getOverallRating(input));
-            } else {
-                System.out.println("Please enter a Valid Number");
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Please enter a Valid Number");
-        }
-        }
-            else {
-                System.out.println("Please enter a symptoms and pain scales first to be able to see their summary");
-            }
-
-        System.out.println("------------END OF SUMMARY-------------");
-
-    }
-
-    public void displayRisk(){
-        System.out.println("------------HERE'S THE RISK LEVEL-------------");
-        System.out.println(" Overall rating - after comparing with the summary of the previous game: ");
-        SymptomEvaluation rating = new SymptomEvaluation();
-        System.out.println( rating.getOverallRating(rating.totalNumberOfSymptoms()));
-    }
-
-    boolean checkPreEvaluation(int evaluationNumber){
-            if(vectorSize()>1){
-                if ((evaluationNumber-2) >= 0) {
-                    evaluationsList.get(evaluationNumber-1).getOverallRating(evaluationNumber);
-                    return true;
+                    if (((currentSymptom.totalNumberOfSymptoms() - previousRate.totalNumberOfSymptoms()) < 3) && ((currentSymptom.severityScore() - previousRate.severityScore()) >= 10)) {
+                        return "YELLOW ";
+                    }
+                    if (((currentSymptom.totalNumberOfSymptoms() - previousRate.totalNumberOfSymptoms()) >= 3) &&  ((currentSymptom.severityScore() - previousRate.severityScore()) >= 15)) {
+                        return "RED ";
+                    }
+                    return "No ratings";
                 } else {
-                    return false;
+                    return "No ratings";
                 }
+            }catch(NumberFormatException e){
+                System.out.println("I am at exception");
+                return "No ratings";
             }
-            else{
-                System.out.println("Please enter a symptom first in order to be able  to view it");
-                return false;
-            }
+        }else{
+            System.out.println("No ratings, Please submit a rating first in order to be able to display the symptomts risk");
+            return "";
         }
+    }
 
 }
-
-
-
-
